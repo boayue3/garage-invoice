@@ -1,69 +1,7 @@
 // import Image from "next/image";
 // import styles from "./page.module.css";
 
-// export default function Home() {
-//   return (
-//     <div className={styles.page}>
-//       <main className={styles.main}>
-//         <Image
-//           className={styles.logo}
-//           src="/next.svg"
-//           alt="Next.js logo"
-//           width={100}
-//           height={20}
-//           priority
-//         />
-//         <div className={styles.intro}>
-//           <h1>To get started, edit the page.tsx file.</h1>
-//           <p>
-//             Looking for a starting point or more instructions? Head over to{" "}
-//             <a
-//               href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-//               target="_blank"
-//               rel="noopener noreferrer"
-//             >
-//               Templates
-//             </a>{" "}
-//             or the{" "}
-//             <a
-//               href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-//               target="_blank"
-//               rel="noopener noreferrer"
-//             >
-//               Learning
-//             </a>{" "}
-//             center.
-//           </p>
-//         </div>
-//         <div className={styles.ctas}>
-//           <a
-//             className={styles.primary}
-//             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//           >
-//             <Image
-//               className={styles.logo}
-//               src="/vercel.svg"
-//               alt="Vercel logomark"
-//               width={16}
-//               height={16}
-//             />
-//             Deploy Now
-//           </a>
-//           <a
-//             className={styles.secondary}
-//             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//           >
-//             Documentation
-//           </a>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// }
+
 "use client";
 
 import { useState } from "react";
@@ -143,8 +81,8 @@ export default function Home() {
 
         .spinner {
           width: 22px; height: 22px;
-          border: 2px solid rgba(214,62,42,0.15);
-          border-top-color: #D63E2A;
+          border: 2px solid rgba(234,88,12,0.15);
+          border-top-color: var(--accent);
           border-radius: 50%;
           animation: spin 0.7s linear infinite;
           display: inline-block;
@@ -152,6 +90,8 @@ export default function Home() {
         @keyframes spin { to { transform: rotate(360deg); } }
 
         input[type=text]:focus { outline: none; }
+
+        :root { --accent: rgb(234, 88, 12); --accent-dark: rgb(194, 65, 6); }
 
         .btn-generate {
           width: 100%;
@@ -173,7 +113,7 @@ export default function Home() {
 
         .btn-dl {
           display: flex; align-items: center; gap: 7px;
-          background: #D63E2A; color: #fff;
+          background: var(--accent); color: #fff;
           border: none; border-radius: 10px;
           padding: 11px 18px;
           font-family: 'DM Sans', sans-serif;
@@ -181,7 +121,7 @@ export default function Home() {
           cursor: pointer;
           transition: background 0.15s, transform 0.1s;
         }
-        .btn-dl:hover { background: #bf3523; }
+        .btn-dl:hover { background: var(--accent-dark); }
         .btn-dl:active { transform: scale(0.98); }
 
         .example-btn {
@@ -195,7 +135,7 @@ export default function Home() {
           width: 100%;
           transition: border-color 0.15s, background 0.15s;
         }
-        .example-btn:hover { border-color: #D63E2A; background: #fff9f8; }
+        .example-btn:hover { border-color: var(--accent); background: #fff9f8; }
 
         .invoice-card {
           background: #fff;
@@ -216,20 +156,7 @@ export default function Home() {
           backdropFilter: "blur(10px)",
           position: "sticky", top: 0, zIndex: 10,
         }}>
-          <div style={{
-            width: 28, height: 28, background: "#D63E2A", borderRadius: 7,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg viewBox="0 0 16 16" fill="white" style={{ width: 14, height: 14 }}>
-              <path d="M2 11V6l6-3 6 3v5l-6 3-6-3zm6-1.2 3.6-1.8V7L8 5.2 4.4 7v1l3.6 1.8z" />
-            </svg>
-          </div>
-          <span style={{ fontWeight: 600, fontSize: 15, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Garage</span>
-          <span style={{
-            marginLeft: 4, fontSize: 11, color: "#999",
-            border: "0.5px solid #ddd", borderRadius: 6,
-            padding: "2px 8px", background: "#fff",
-          }}>Invoice Generator</span>
+          <img src="/garage-logo.svg" alt="Garage" style={{ height: 28, width: "auto" }} />
         </header>
 
         {/* Body */}
@@ -253,7 +180,7 @@ export default function Home() {
                 letterSpacing: "-0.02em",
               }}>
                 Generate a<br />
-                <em style={{ color: "#D63E2A" }}>board-ready</em><br />
+                <em style={{ color: "var(--accent)" }}>board-ready</em><br />
                 invoice
               </h1>
               <p style={{ fontSize: 13, color: "#888", marginTop: 12, lineHeight: 1.75 }}>
@@ -279,7 +206,7 @@ export default function Home() {
                   fontFamily: "'DM Sans', sans-serif",
                   transition: "border-color 0.15s",
                 }}
-                onFocus={e => (e.target.style.borderColor = "#D63E2A")}
+                onFocus={e => (e.target.style.borderColor = "var(--accent)")}
                 onBlur={e => (e.target.style.borderColor = "#e0e0e0")}
               />
               <button type="submit" className="btn-generate" disabled={loading || !url.trim()}>
@@ -297,7 +224,7 @@ export default function Home() {
             </form>
 
             {/* Example listings */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <span style={{ fontSize: 10, fontWeight: 600, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                 Try an example
               </span>
@@ -312,10 +239,10 @@ export default function Home() {
                   onClick={() => fillExample(ex.label, ex.price)}
                 >
                   <span style={{ fontSize: 12, color: "#444" }}>{ex.label}</span>
-                  <span style={{ fontSize: 12, color: "#D63E2A", fontWeight: 500 }}>{ex.price}</span>
+                  <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>{ex.price}</span>
                 </button>
               ))}
-            </div>
+            </div> */}
 
             <div style={{ marginTop: "auto", fontSize: 11, color: "#ccc", lineHeight: 1.7 }}>
               Prices do not include taxes, fees, or delivery. Contact seller for final quote.
@@ -387,14 +314,7 @@ export default function Home() {
                   }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-                        <div style={{
-                          width: 22, height: 22, background: "#D63E2A",
-                          borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                          <svg viewBox="0 0 16 16" fill="white" style={{ width: 11, height: 11 }}>
-                            <path d="M2 11V6l6-3 6 3v5l-6 3-6-3zm6-1.2 3.6-1.8V7L8 5.2 4.4 7v1l3.6 1.8z" />
-                          </svg>
-                        </div>
+                      <img src="/garage-logo.svg" alt="Garage" style={{ height: 22, width: "auto" }} />
                         <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>Garage</span>
                       </div>
                       <p style={{ fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Invoice</p>
@@ -408,8 +328,8 @@ export default function Home() {
                       <span style={{
                         display: "inline-block", marginTop: 12,
                         fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase",
-                        background: "rgba(214,62,42,0.15)", color: "#f07060",
-                        border: "0.5px solid rgba(214,62,42,0.3)",
+                        background: "rgba(234,88,12,0.15)", color: "#f97316",
+                        border: "0.5px solid rgba(234,88,12,0.3)",
                         borderRadius: 5, padding: "3px 10px",
                       }}>
                         {listing.condition}
