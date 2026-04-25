@@ -6,20 +6,20 @@
 
 import { useState } from "react";
 
-// ── Mock listing data — swap out for real API call later ───────────
-const MOCK_LISTING = {
-  id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  title: "2019 Pierce Enforcer Pumper",
-  description:
-    "This 2019 Pierce Enforcer is a top-of-the-line Class A pumper with a Waterous 1,500 GPM single-stage pump and a 750-gallon polypropylene tank. Features include a Cummins ISL9 450HP engine, Hale foam system, and full LED lighting package. Well maintained with full service records available.",
-  price: 385000,
-  year: 2019,
-  make: "Pierce",
-  model: "Enforcer Pumper",
-  mileage: 12400,
-  location: "Sacramento, CA",
-  condition: "Used",
-};
+// // ── Mock listing data — swap out for real API call later ───────────
+// const MOCK_LISTING = {
+//   id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+//   title: "2019 Pierce Enforcer Pumper",
+//   description:
+//     "This 2019 Pierce Enforcer is a top-of-the-line Class A pumper with a Waterous 1,500 GPM single-stage pump and a 750-gallon polypropylene tank. Features include a Cummins ISL9 450HP engine, Hale foam system, and full LED lighting package. Well maintained with full service records available.",
+//   price: 385000,
+//   year: 2019,
+//   make: "Pierce",
+//   model: "Enforcer Pumper",
+//   mileage: 12400,
+//   location: "Sacramento, CA",
+//   condition: "Used",
+// };
 
 function fmtPrice(val?: number) {
   if (!val) return "—";
@@ -37,23 +37,37 @@ function fmtMiles(val?: number) {
 
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [listing, setListing] = useState<typeof MOCK_LISTING | null>(null);
+  const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleGenerate(e: React.FormEvent) {
+  async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     if (!url.trim()) return;
     setLoading(true);
     setListing(null);
-    // Simulated delay — replace with real fetch later
-    setTimeout(() => {
-      setListing(MOCK_LISTING);
+    setError(null);
+
+    try {
+      const match = url.match(
+        /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+      );
+      if (!match) throw new Error("Couldn't find a listing ID in that URL.");
+
+      const res = await fetch(`/api/listing?id=${match[1]}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch listing.");
+      setListing(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   }
 
   function fillExample(label: string, price: string) {
-    setUrl("https://withgarage.com/listing/a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    setUrl("https://shopgarage.com/listing/a1b2c3d4-e5f6-7890-abcd-ef1234567890");
   }
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -212,9 +226,9 @@ export default function Home() {
               <button type="submit" className="btn-generate" disabled={loading || !url.trim()}>
                 {loading
                   ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      <span className="spinner" style={{ width: 16, height: 16 }} />
-                      Fetching listing…
-                    </span>
+                    <span className="spinner" style={{ width: 16, height: 16 }} />
+                    Fetching listing…
+                  </span>
                   : "Generate invoice →"
                 }
               </button>
@@ -222,27 +236,16 @@ export default function Home() {
                 We'll extract the listing ID from the URL automatically.
               </p>
             </form>
-
-            {/* Example listings */}
-            {/* <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                Try an example
-              </span>
-              {[
-                { label: "2019 Pierce Enforcer Pumper", price: "$385,000" },
-                { label: "2021 Ferrara Igniter Aerial", price: "$1,200,000" },
-                { label: "2017 KME Predator Tanker", price: "$210,000" },
-              ].map(ex => (
-                <button
-                  key={ex.label}
-                  className="example-btn"
-                  onClick={() => fillExample(ex.label, ex.price)}
-                >
-                  <span style={{ fontSize: 12, color: "#444" }}>{ex.label}</span>
-                  <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>{ex.price}</span>
-                </button>
-              ))}
-            </div> */}
+            {error && (
+              <div style={{
+                fontSize: 12, color: "var(--accent)",
+                background: "rgba(234,88,12,0.06)",
+                border: "0.5px solid rgba(234,88,12,0.2)",
+                borderRadius: 10, padding: "12px 14px", lineHeight: 1.6,
+              }}>
+                {error}
+              </div>
+            )}
 
             <div style={{ marginTop: "auto", fontSize: 11, color: "#ccc", lineHeight: 1.7 }}>
               Prices do not include taxes, fees, or delivery. Contact seller for final quote.
@@ -314,8 +317,7 @@ export default function Home() {
                   }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-                      <img src="/garage-logo.svg" alt="Garage" style={{ height: 22, width: "auto" }} />
-                        <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>Garage</span>
+                        <img src="/garage-logo.svg" alt="Garage" style={{ height: 22, width: "auto" }} />
                       </div>
                       <p style={{ fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Invoice</p>
                       <p style={{ fontSize: 22, fontWeight: 600, color: "#fff", marginTop: 2, letterSpacing: "-0.03em" }}>
@@ -352,11 +354,11 @@ export default function Home() {
                   <div style={{ padding: "24px 32px", borderBottom: "0.5px solid #f0f0f0" }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 40px" }}>
                       {[
-                        { label: "Year",      value: listing.year?.toString() },
-                        { label: "Make",      value: listing.make },
-                        { label: "Model",     value: listing.model },
-                        { label: "Mileage",   value: fmtMiles(listing.mileage) },
-                        { label: "Location",  value: listing.location },
+                        { label: "Year", value: listing.year?.toString() },
+                        { label: "Make", value: listing.make },
+                        { label: "Model", value: listing.model },
+                        { label: "Mileage", value: fmtMiles(listing.mileage) },
+                        { label: "Location", value: listing.location },
                         { label: "Condition", value: listing.condition },
                       ].map(f => (
                         <div key={f.label}>
@@ -394,7 +396,7 @@ export default function Home() {
                     borderTop: "0.5px solid #ebebeb",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                   }}>
-                    <p style={{ fontSize: 11, color: "#bbb" }}>withgarage.com</p>
+                    <p style={{ fontSize: 11, color: "#bbb" }}>shopgarage.com</p>
                     <p style={{ fontSize: 11, color: "#bbb" }}>Generated {today}</p>
                   </div>
                 </div>
