@@ -1,26 +1,23 @@
-// import Image from "next/image";
-// import styles from "./page.module.css";
-
 
 "use client";
 
 import { useState } from "react";
 
-// // ── Mock listing data — swap out for real API call later ───────────
-// const MOCK_LISTING = {
-//   id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-//   title: "2019 Pierce Enforcer Pumper",
-//   description:
-//     "This 2019 Pierce Enforcer is a top-of-the-line Class A pumper with a Waterous 1,500 GPM single-stage pump and a 750-gallon polypropylene tank. Features include a Cummins ISL9 450HP engine, Hale foam system, and full LED lighting package. Well maintained with full service records available.",
-//   price: 385000,
-//   year: 2019,
-//   make: "Pierce",
-//   model: "Enforcer Pumper",
-//   mileage: 12400,
-//   location: "Sacramento, CA",
-//   condition: "Used",
-// };
+// ── Types ─────────────────────────────────────────────────────────
+interface Listing {
+  id: string;
+  listingTitle: string;
+  listingDescription?: string;
+  sellingPrice?: number;
+  itemAge?: number;
+  itemBrand?: string;
+  status?: string;
+  address?: { state?: string };
+  listingImages?: { url: string; order: number }[];
+  ListingAttribute?: { value: string; categoryAttributeId: string }[];
+}
 
+// ── Helpers ───────────────────────────────────────────────────────
 function fmtPrice(val?: number) {
   if (!val) return "—";
   return new Intl.NumberFormat("en-US", {
@@ -30,11 +27,7 @@ function fmtPrice(val?: number) {
   }).format(val);
 }
 
-function fmtMiles(val?: number) {
-  if (!val) return "—";
-  return new Intl.NumberFormat("en-US").format(val) + " mi";
-}
-
+// ── Page ──────────────────────────────────────────────────────────
 export default function Home() {
   const [url, setUrl] = useState("");
   const [listing, setListing] = useState<Listing | null>(null);
@@ -66,10 +59,6 @@ export default function Home() {
     }
   }
 
-  function fillExample(label: string, price: string) {
-    setUrl("https://shopgarage.com/listing/a1b2c3d4-e5f6-7890-abcd-ef1234567890");
-  }
-
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -79,6 +68,8 @@ export default function Home() {
   const invoiceNumber = listing
     ? `GRG-${listing.id.slice(0, 6).toUpperCase()}`
     : null;
+
+  const heroImage = listing?.listingImages?.find(img => img.order === 0)?.url;
 
   return (
     <>
@@ -138,24 +129,18 @@ export default function Home() {
         .btn-dl:hover { background: var(--accent-dark); }
         .btn-dl:active { transform: scale(0.98); }
 
-        .example-btn {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 10px 14px;
-          border: 0.5px solid #ebebeb;
-          border-radius: 10px;
-          background: #fafafa;
-          cursor: pointer;
-          font-family: 'DM Sans', sans-serif;
-          width: 100%;
-          transition: border-color 0.15s, background 0.15s;
-        }
-        .example-btn:hover { border-color: var(--accent); background: #fff9f8; }
-
         .invoice-card {
           background: #fff;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 4px 32px rgba(0,0,0,0.09), 0 0 0 0.5px rgba(0,0,0,0.06);
+        }
+
+        .invoice-hero {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          display: block;
         }
       `}</style>
 
@@ -211,7 +196,7 @@ export default function Home() {
                 type="text"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
-                placeholder="https://withgarage.com/listing/..."
+                placeholder="https://www.shopgarage.com/listing/..."
                 style={{
                   width: "100%",
                   border: "0.5px solid #e0e0e0", borderRadius: 10,
@@ -220,15 +205,15 @@ export default function Home() {
                   fontFamily: "'DM Sans', sans-serif",
                   transition: "border-color 0.15s",
                 }}
-                onFocus={e => (e.target.style.borderColor = "var(--accent)")}
+                onFocus={e => (e.target.style.borderColor = "rgb(234,88,12)")}
                 onBlur={e => (e.target.style.borderColor = "#e0e0e0")}
               />
               <button type="submit" className="btn-generate" disabled={loading || !url.trim()}>
                 {loading
                   ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    <span className="spinner" style={{ width: 16, height: 16 }} />
-                    Fetching listing…
-                  </span>
+                      <span className="spinner" style={{ width: 16, height: 16 }} />
+                      Fetching listing…
+                    </span>
                   : "Generate invoice →"
                 }
               </button>
@@ -236,6 +221,7 @@ export default function Home() {
                 We'll extract the listing ID from the URL automatically.
               </p>
             </form>
+
             {error && (
               <div style={{
                 fontSize: 12, color: "var(--accent)",
@@ -258,6 +244,7 @@ export default function Home() {
             alignItems: "center", justifyContent: "center",
             padding: "48px 48px",
             background: "#F0EDE8",
+            overflowY: "auto",
           }}>
 
             {/* Empty state */}
@@ -297,7 +284,7 @@ export default function Home() {
                   alignItems: "center", marginBottom: 14,
                 }}>
                   <span style={{ fontSize: 13, color: "#888", fontWeight: 500 }}>
-                    {listing.title}
+                    {listing.listingTitle}
                   </span>
                   <button className="btn-dl">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14 }}>
@@ -310,13 +297,22 @@ export default function Home() {
                 {/* Invoice card */}
                 <div className="invoice-card">
 
+                  {/* Hero image */}
+                  {heroImage && (
+                    <img
+                      src={heroImage}
+                      alt={listing.listingTitle}
+                      className="invoice-hero"
+                    />
+                  )}
+
                   {/* Dark header */}
                   <div style={{
                     background: "#1a1a1a", padding: "28px 32px",
                     display: "flex", justifyContent: "space-between", alignItems: "flex-start",
                   }}>
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+                      <div style={{ marginBottom: 18 }}>
                         <img src="/garage-logo.svg" alt="Garage" style={{ height: 22, width: "auto" }} />
                       </div>
                       <p style={{ fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Invoice</p>
@@ -327,43 +323,45 @@ export default function Home() {
                     <div style={{ textAlign: "right" }}>
                       <p style={{ fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Date issued</p>
                       <p style={{ fontSize: 13, color: "#ccc", marginTop: 4 }}>{today}</p>
-                      <span style={{
-                        display: "inline-block", marginTop: 12,
-                        fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase",
-                        background: "rgba(234,88,12,0.15)", color: "#f97316",
-                        border: "0.5px solid rgba(234,88,12,0.3)",
-                        borderRadius: 5, padding: "3px 10px",
-                      }}>
-                        {listing.condition}
-                      </span>
+                      {listing.status && (
+                        <span style={{
+                          display: "inline-block", marginTop: 12,
+                          fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase",
+                          background: "rgba(234,88,12,0.15)", color: "#f97316",
+                          border: "0.5px solid rgba(234,88,12,0.3)",
+                          borderRadius: 5, padding: "3px 10px",
+                        }}>
+                          {listing.status}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Vehicle */}
+                  {/* Item */}
                   <div style={{ padding: "24px 32px", borderBottom: "0.5px solid #f0f0f0" }}>
-                    <p style={{ fontSize: 10, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Vehicle</p>
+                    <p style={{ fontSize: 10, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Item</p>
                     <h2 style={{ fontSize: 20, fontWeight: 600, color: "#1a1a1a", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-                      {listing.title}
+                      {listing.listingTitle}
                     </h2>
-                    <p style={{ fontSize: 13, color: "#777", marginTop: 8, lineHeight: 1.75 }}>
-                      {listing.description}
-                    </p>
+                    {listing.listingDescription && (
+                      <p style={{ fontSize: 13, color: "#777", marginTop: 8, lineHeight: 1.75 }}>
+                        {listing.listingDescription}
+                      </p>
+                    )}
                   </div>
 
                   {/* Details grid */}
                   <div style={{ padding: "24px 32px", borderBottom: "0.5px solid #f0f0f0" }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 40px" }}>
                       {[
-                        { label: "Year", value: listing.year?.toString() },
-                        { label: "Make", value: listing.make },
-                        { label: "Model", value: listing.model },
-                        { label: "Mileage", value: fmtMiles(listing.mileage) },
-                        { label: "Location", value: listing.location },
-                        { label: "Condition", value: listing.condition },
-                      ].map(f => (
+                        { label: "Year",      value: listing.itemAge?.toString() },
+                        { label: "Make",      value: listing.itemBrand },
+                        { label: "Location",  value: listing.address?.state },
+                        { label: "Status",    value: listing.status },
+                      ].filter(f => f.value).map(f => (
                         <div key={f.label}>
                           <p style={{ fontSize: 10, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>{f.label}</p>
-                          <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>{f.value ?? "—"}</p>
+                          <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>{f.value}</p>
                         </div>
                       ))}
                     </div>
@@ -381,7 +379,7 @@ export default function Home() {
                     <div>
                       <p style={{ fontSize: 10, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 5 }}>Asking price</p>
                       <p style={{ fontSize: 34, fontWeight: 600, color: "#1a1a1a", letterSpacing: "-0.04em", lineHeight: 1 }}>
-                        {fmtPrice(listing.price)}
+                        {fmtPrice(listing.sellingPrice)}
                       </p>
                     </div>
                     <p style={{ fontSize: 11, color: "#bbb", maxWidth: 170, textAlign: "right", lineHeight: 1.65 }}>
@@ -409,3 +407,4 @@ export default function Home() {
     </>
   );
 }
+
