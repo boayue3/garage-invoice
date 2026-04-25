@@ -70,6 +70,195 @@ export default function Home() {
 
   const heroImage = listing?.listingImages?.find(img => img.order === 0)?.url;
 
+  async function handleDownloadPDF() {
+    const { default: jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "pt", format: "letter" });
+    const W = 612;
+  
+    const today = new Date().toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+  
+    const invoiceNum = `GRG-${listing!.id.slice(0, 6).toUpperCase()}`;
+  
+    // ── Header ──────────────────────────────────────────────
+    doc.setFillColor(249, 250, 251);
+    doc.rect(0, 0, W, 90, "F");
+    doc.setDrawColor(17, 24, 39);
+    doc.setLineWidth(1.5);
+    doc.line(48, 90, W - 48, 90);
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(156, 163, 175);
+    doc.text("INVOICE", 48, 44);
+  
+    doc.setFontSize(22);
+    doc.setTextColor(17, 24, 39);
+    doc.text(invoiceNum, 48, 70);
+  
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(156, 163, 175);
+    doc.text("DATE", W - 48, 44, { align: "right" });
+    doc.setTextColor(107, 114, 128);
+    doc.setFontSize(11);
+    doc.text(today, W - 48, 62, { align: "right" });
+  
+    // ── From / Bill To ──────────────────────────────────────
+    let y = 114;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(156, 163, 175);
+    doc.text("FROM", 48, y);
+    doc.text("BILL TO", W / 2, y);
+  
+    y += 14;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(17, 24, 39);
+    doc.text("Garage Technologies, Inc.", 48, y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(107, 114, 128);
+    doc.setFontSize(11);
+    doc.text("shopgarage.com", 48, y + 16);
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(17, 24, 39);
+    doc.text("Fire Department", W / 2, y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(107, 114, 128);
+    doc.text("Purchasing Department", W / 2, y + 16);
+    if (listing!.address?.state) {
+      doc.text(`${listing!.address.state}, United States`, W / 2, y + 32);
+    }
+  
+    // ── Vehicle details ─────────────────────────────────────
+    y += 72;
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.5);
+    doc.line(48, y, W - 48, y);
+    y += 16;
+  
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(156, 163, 175);
+    doc.text("VEHICLE DETAILS", 48, y);
+    y += 14;
+  
+    const details = [
+      { label: "Year", value: listing!.itemAge?.toString() },
+      { label: "Brand", value: listing!.itemBrand },
+      { label: "Location", value: listing!.address?.state },
+    ].filter(f => f.value);
+  
+    details.forEach((f, i) => {
+      const x = 48 + i * 180;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(156, 163, 175);
+      doc.text(f.label.toUpperCase(), x, y);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(17, 24, 39);
+      doc.text(f.value!, x, y + 14);
+    });
+  
+    // ── Line items table ────────────────────────────────────
+    y += 48;
+    doc.setFillColor(249, 250, 251);
+    doc.rect(0, y, W, 28, "F");
+    doc.setDrawColor(229, 231, 235);
+    doc.line(0, y, W, y);
+    doc.line(0, y + 28, W, y + 28);
+  
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(156, 163, 175);
+    doc.text("DESCRIPTION", 48, y + 18);
+    doc.text("QTY", W - 250, y + 18);
+    doc.text("UNIT PRICE", W - 170, y + 18);
+    doc.text("AMOUNT", W - 48, y + 18, { align: "right" });
+  
+    y += 40;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(17, 24, 39);
+    doc.text(listing!.listingTitle, 48, y);
+  
+    if (listing!.listingDescription) {
+      y += 14;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      const descLines = doc.splitTextToSize(listing!.listingDescription, 300);
+      const trimmed = descLines.slice(0, 3);
+      doc.text(trimmed, 48, y);
+      y += trimmed.length * 12;
+    }
+  
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(107, 114, 128);
+    const priceY = y - (listing!.listingDescription ? 14 : 0);
+    doc.text("1", W - 242, priceY);
+    doc.text(fmtPrice(listing!.sellingPrice), W - 162, priceY);
+    doc.setTextColor(17, 24, 39);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtPrice(listing!.sellingPrice), W - 48, priceY, { align: "right" });
+  
+    // ── Totals ──────────────────────────────────────────────
+    y += 32;
+    doc.setDrawColor(229, 231, 235);
+    doc.line(48, y, W - 48, y);
+    y += 20;
+  
+    const totalRows = [
+      { label: "Subtotal", value: fmtPrice(listing!.sellingPrice), bold: false },
+      { label: "Tax", value: "TBD", bold: false },
+      { label: "Delivery", value: "TBD", bold: false },
+    ];
+  
+    totalRows.forEach(row => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(107, 114, 128);
+      doc.text(row.label, W - 200, y);
+      doc.text(row.value, W - 48, y, { align: "right" });
+      y += 18;
+    });
+  
+    y += 4;
+    doc.setDrawColor(17, 24, 39);
+    doc.setLineWidth(1.5);
+    doc.line(W - 200, y, W - 48, y);
+    y += 14;
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(17, 24, 39);
+    doc.text("Total due", W - 200, y);
+    doc.text(fmtPrice(listing!.sellingPrice), W - 48, y, { align: "right" });
+  
+    // ── Footer ──────────────────────────────────────────────
+    y += 48;
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.5);
+    doc.line(48, y, W - 48, y);
+    y += 16;
+  
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(156, 163, 175);
+    const disclaimer = "This invoice is for pre-purchase approval purposes only. Final price subject to negotiation and may exclude taxes, fees, and delivery.";
+    const footerLines = doc.splitTextToSize(disclaimer, W - 96);
+    doc.text(footerLines, 48, y);
+    doc.text(`Generated ${today} · shopgarage.com`, W - 48, y, { align: "right" });
+  
+    doc.save(`garage-invoice-${invoiceNum}.pdf`);
+  }
+
   return (
     <>
       <style>{`
@@ -486,7 +675,7 @@ export default function Home() {
                   <span style={{ fontSize: 13, color: "#888", fontWeight: 500 }}>
                     {listing.listingTitle}
                   </span>
-                  <button className="btn-dl">
+                  <button className="btn-dl" onClick={handleDownloadPDF}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14 }}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>

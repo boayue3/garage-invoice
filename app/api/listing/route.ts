@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Garage API response:", JSON.stringify(data, null, 2));
+    // console.log("Garage API response:", JSON.stringify(data, null, 2)); -- log to print listing details
     return NextResponse.json(data);
   } catch (err) {
     console.error(err);
