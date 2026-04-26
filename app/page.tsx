@@ -163,7 +163,7 @@ export default function Home() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(17, 24, 39);
-    doc.text("Fire Department", W / 2, y);
+    // doc.text("Fire Department", W / 2, y);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(107, 114, 128);
     doc.text("Purchasing Department", W / 2, y + 16);
@@ -216,7 +216,6 @@ export default function Home() {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(156, 163, 175);
     doc.text("DESCRIPTION", 48, y + 18);
-    doc.text("QTY", W - 250, y + 18);
     doc.text("UNIT PRICE", W - 170, y + 18);
     doc.text("AMOUNT", W - 48, y + 18, { align: "right" });
 
@@ -244,7 +243,6 @@ export default function Home() {
     doc.setFontSize(11);
     doc.setTextColor(107, 114, 128);
     const priceY = y - (listing!.listingDescription ? 14 : 0);
-    doc.text("1", W - 242, priceY);
     doc.text(fmtPrice(listing!.sellingPrice), W - 162, priceY);
     doc.setTextColor(17, 24, 39);
     doc.setFont("helvetica", "bold");
@@ -753,7 +751,6 @@ export default function Home() {
                     <thead>
                       <tr>
                         <th style={{ width: "60%" }}>Description</th>
-                        <th>Qty</th>
                         <th>Unit price</th>
                         <th>Amount</th>
                       </tr>
@@ -776,7 +773,6 @@ export default function Home() {
                             </div>
                           )}
                         </td>
-                        <td style={{ color: "var(--ink-secondary)" }}>1</td>
                         <td style={{ color: "var(--ink-secondary)" }}>{fmtPrice(listing.sellingPrice)}</td>
                         <td style={{ fontWeight: 500 }}>{fmtPrice(listing.sellingPrice)}</td>
                       </tr>
